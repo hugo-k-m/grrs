@@ -13,8 +13,9 @@ struct Cli {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::from_args();
-    let content = std::fs::read_to_string(&args.path)
-        .with_context(|| format!("Could not read file `{}`", &args.path.display()))?;
+    let path = &args.path;
+    let content = std::fs::read_to_string(path)
+        .with_context(|| format!("Could not read file `{:?}`", path))?;
 
     for line in content.lines() {
         if line.contains(&args.pattern) {
