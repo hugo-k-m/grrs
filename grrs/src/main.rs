@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use std::io::{self, Write};
 use structopt::StructOpt;
 
 /// Search for a pattern in a file and display the lines that contain it.
@@ -17,9 +18,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let content = std::fs::read_to_string(path)
         .with_context(|| format!("Could not read file `{:?}`", path))?;
 
+    let stdout = io::stdout();
+    let mut handle = io::BufWriter::new(stdout.lock());
+
     for line in content.lines() {
         if line.contains(&args.pattern) {
-            println!("{}", line);
+            writeln!(handle, "{}", line)?;
         }
     }
 
