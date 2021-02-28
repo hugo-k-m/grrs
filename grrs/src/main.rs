@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use log::{info, warn};
 use std::io::{self, Write};
 use structopt::StructOpt;
 
@@ -13,6 +14,11 @@ struct Cli {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
+
+    info!("starting up");
+    warn!("test warning");
+
     let args = Cli::from_args();
     let path = &args.path;
     let content = std::fs::read_to_string(path)
@@ -20,6 +26,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let stdout = io::stdout();
     let mut handle = io::BufWriter::new(stdout.lock());
+
+    info!("writing lines to the console");
 
     for line in content.lines() {
         if line.contains(&args.pattern) {
