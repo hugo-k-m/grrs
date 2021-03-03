@@ -24,13 +24,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let content = std::fs::read_to_string(path)
         .with_context(|| format!("Could not read file `{:?}`", path))?;
 
+    info!("finding matches");
+
+    find_matches(content, &args.pattern)?;
+
+    Ok(())
+}
+
+fn find_matches(content: String, pattern: &str) -> Result<(), anyhow::Error> {
     let stdout = io::stdout();
     let mut handle = io::BufWriter::new(stdout.lock());
 
-    info!("writing lines to the console");
-
     for line in content.lines() {
-        if line.contains(&args.pattern) {
+        if line.contains(pattern) {
             writeln!(handle, "{}", line)?;
         }
     }
