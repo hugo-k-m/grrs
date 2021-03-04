@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use log::{info, warn};
+use log::info;
 use std::io::{self, Write};
 use structopt::StructOpt;
 
@@ -17,27 +17,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
     info!("starting up");
-    warn!("test warning");
 
     let args = Cli::from_args();
     let path = &args.path;
     let content = std::fs::read_to_string(path)
         .with_context(|| format!("Could not read file `{:?}`", path))?;
 
+    let stdout = io::stdout();
+    let handle = io::BufWriter::new(stdout.lock());
+
     info!("finding matches");
 
-    find_matches(content, &args.pattern)?;
+    find_matches(content, &args.pattern, handle)?;
 
     Ok(())
 }
 
-fn find_matches(content: String, pattern: &str) -> Result<(), anyhow::Error> {
-    let stdout = io::stdout();
-    let mut handle = io::BufWriter::new(stdout.lock());
-
+fn find_matches(
+    content: String,
+    pattern: &str,
+    mut writer: impl Write,
+) -> Result<(), anyhow::Error> {
     for line in content.lines() {
         if line.contains(pattern) {
-            writeln!(handle, "{}", line)?;
+            writeln!(writer, "{}", line)?;
         }
     }
 
