@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use log::info;
-use std::io::{self, Write};
+use std::io::{stdout, Write};
 use structopt::StructOpt;
 
 /// Search for a pattern in a file and display the lines that contain it.
@@ -13,7 +13,7 @@ struct Cli {
     path: std::path::PathBuf,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     env_logger::init();
 
     info!("starting up");
@@ -21,28 +21,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::from_args();
     let path = &args.path;
     let content = std::fs::read_to_string(path)
-        .with_context(|| format!("Could not read file `{:?}`", path))?;
-
-    let stdout = io::stdout();
-    let handle = io::BufWriter::new(stdout.lock());
+        .with_context(|| format!("Could not read file `{}`", path.display()))?;
 
     info!("finding matches");
 
-    find_matches(content, &args.pattern, handle)?;
+    find_matches(content, &args.pattern, &mut stdout().lock())?;
 
     Ok(())
 }
 
-fn find_matches(
-    content: String,
-    pattern: &str,
-    mut writer: impl Write,
-) -> Result<(), anyhow::Error> {
+fn find_matches(content: String, pattern: &str, mut writer: impl Write) -> Result<()> {
     for line in content.lines() {
         if line.contains(pattern) {
             writeln!(writer, "{}", line)?;
         }
     }
+
+    Ok(())
+}
+
+#[test]
+fn find_match() -> Result<()> {
+    let mut result = Vec::new();
+    find_matches(
+        "lorem ipsum\ndolor sit amet".to_string(),
+        "lorem",
+        &mut result,
+    )?;
+    assert_eq!(result, b"lorem ipsum\n");
 
     Ok(())
 }
