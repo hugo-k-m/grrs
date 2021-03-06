@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use log::info;
-use std::io::{stdout, Write};
+use std::io::stdout;
 use structopt::StructOpt;
 
 /// Search for a pattern in a file and display the lines that contain it.
@@ -25,17 +25,7 @@ fn main() -> Result<()> {
 
     info!("finding matches");
 
-    find_matches(content, &args.pattern, &mut stdout().lock())?;
-
-    Ok(())
-}
-
-fn find_matches(content: String, pattern: &str, mut writer: impl Write) -> Result<()> {
-    for line in content.lines() {
-        if line.contains(pattern) {
-            writeln!(writer, "{}", line)?;
-        }
-    }
+    grrs::find_matches(content, &args.pattern, &mut stdout().lock())?;
 
     Ok(())
 }
@@ -43,7 +33,7 @@ fn find_matches(content: String, pattern: &str, mut writer: impl Write) -> Resul
 #[test]
 fn find_match() -> Result<()> {
     let mut result = Vec::new();
-    find_matches(
+    grrs::find_matches(
         "lorem ipsum\ndolor sit amet".to_string(),
         "lorem",
         &mut result,
