@@ -29,3 +29,18 @@ fn find_content_in_file() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn pattern_is_empty() -> Result<(), Box<dyn std::error::Error>> {
+    let mut file = NamedTempFile::new()?;
+    let file_content = "A test\nActual content\nMore content\nAnother test";
+    writeln!(file, "{}", file_content)?;
+
+    let mut cmd = Command::cargo_bin("grrs")?;
+    cmd.arg("").arg(file.path());
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains(file_content));
+
+    Ok(())
+}
